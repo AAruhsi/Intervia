@@ -1,0 +1,23 @@
+@import "@fontsource/ubuntu/700.css";
+@import "@fontsource/open-sans/400.css";
+@import "@fontsource/open-sans/600.css";
+
+@import "tailwindcss";
+@plugin "daisyui";
+
+@layer utilities {
+  .pattern {
+    /* @apply bg-[url('/src/assets/blackbg.jpg')] bg-cover bg-center min-h-screen w-full; */
+    /* @apply bg-[url('/src/assets/blackPaperBg.jpg')] bg-cover bg-center min-h-screen w-full; */
+  }
+}
+@theme {
+  --font-ubuntu: "Ubuntu", sans-serif;
+  --font-openSans: "Open Sans", sans-serif;
+
+  --color-kala: "#040D12";
+  --color-midnight: #121063;
+  --color-hara: #183d3d;
+  --color-hara-500: #5c8374;
+  --color-hara-100: #93b1a6;
+}
