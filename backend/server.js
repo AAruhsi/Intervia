@@ -13,7 +13,7 @@ const app = express();
 app.use("/api/webhooks", webhookRoutes);
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: "https://intervia-two.vercel.app" }));
 app.get("/", (req, res) => res.send("API Running"));
 app.use("/api/vapi", vapiRouter);
 // app.use(clerkMiddleware());
