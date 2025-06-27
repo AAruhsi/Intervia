@@ -43,13 +43,18 @@ router.post("/generate", async (req, res) => {
         The questions are going to be read by a voice assistant, so they should not use "/" or "*" or any other special characters.
         Return the questions formatted like this : ["Question 1", "Question 2", "Question 3" ]`,
     });
-
+    console.log("Generated questions:", questions);
+    const cleanJson = questions
+      .replace(/```json\s*/i, "")
+      .replace(/```$/, "")
+      .trim();
+    console.log("Generated  clean json:", cleanJson);
     const interviewData = {
       role,
       type,
       level,
-      techStack: techstack,
-      questions: JSON.parse(questions),
+      techStack: techstack, // fixed spelling
+      questions: JSON.parse(cleanJson),
       userId,
       amount,
       finalized: true,
