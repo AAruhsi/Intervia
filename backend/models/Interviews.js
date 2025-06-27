@@ -4,7 +4,7 @@ const interviewSchema = new mongoose.Schema(
     role: { type: String, required: true },
     type: { type: String, required: true },
     level: { type: String, required: true },
-    teckStack: { type: [String], required: true },
+    techStack: { type: [String], required: true },
     questions: { type: [String], required: true },
     userId: {
       type: String,
