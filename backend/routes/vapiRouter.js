@@ -18,6 +18,14 @@ router.get("/", (req, res) => {
 router.post("/generate", async (req, res) => {
   try {
     const { type, role, level, teckStack, amount, userId } = req.body;
+    console.log("Received request to generate interview questions:", {
+      type,
+      role,
+      level,
+      teckStack,
+      amount,
+      userId,
+    });
     const { text: questions } = await generateText({
       model,
       prompt: `Prepare questions for a job interview. 
@@ -34,7 +42,7 @@ router.post("/generate", async (req, res) => {
       role,
       type,
       level,
-      teckStack: teckStack.split(","),
+      teckStack: teckStack,
       questions: JSON.parse(questions),
       userId,
       amount,
