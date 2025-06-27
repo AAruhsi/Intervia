@@ -53,7 +53,7 @@ router.post("/generate", async (req, res) => {
       role,
       type,
       level,
-      techStack: techstack, // fixed spelling
+      techStack: techstack.split(",").map((tech) => tech.trim()), // fixed spelling
       questions: JSON.parse(cleanJson),
       userId,
       amount,
