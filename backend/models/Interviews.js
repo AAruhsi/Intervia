@@ -7,8 +7,7 @@ const interviewSchema = new mongoose.Schema(
     teckStack: { type: [String], required: true },
     questions: { type: [String], required: true },
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
     },
 
