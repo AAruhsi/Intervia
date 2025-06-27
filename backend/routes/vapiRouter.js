@@ -17,12 +17,13 @@ router.get("/", (req, res) => {
 
 router.post("/generate", async (req, res) => {
   try {
-    const { type, role, level, teckStack, amount, userId } = req.body;
+    const { type, role, level, teckstack, amount, userId } = req.body;
+    res.status(200).json({ success: true }); // Respond quickly
     console.log("Received request to generate interview questions:", {
       type,
       role,
       level,
-      teckStack,
+      teckstack,
       amount,
       userId,
     });
@@ -42,7 +43,7 @@ router.post("/generate", async (req, res) => {
       role,
       type,
       level,
-      teckStack: teckStack,
+      teckStack: teckstack,
       questions: JSON.parse(questions),
       userId,
       amount,
@@ -51,10 +52,10 @@ router.post("/generate", async (req, res) => {
     const newInterview = new Interview(interviewData);
     await newInterview.save();
 
-    res.status(200).json({
-      message: "Interview questions generated successfully",
-      questions: JSON.parse(questions),
-    });
+    // res.status(200).json({
+    //   message: "Interview questions generated successfully",
+    //   questions: JSON.parse(questions),
+    // });
   } catch (error) {
     console.error("Error in /generate:", error);
     res.status(500).send("Error generating interview questions");

@@ -79,12 +79,19 @@ const Agent = ({ userId, userName, type }) => {
     setcallStatus(CallStatus.CONNECTING);
 
     if (type === "generate") {
-      await vapi.start(undefined, undefined, undefined, vapiWorkflowKey, {
-        variableValues: {
-          username: userName,
-          userId: userId,
-        },
-      });
+      const resp = await vapi.start(
+        undefined,
+        undefined,
+        undefined,
+        vapiWorkflowKey,
+        {
+          variableValues: {
+            username: userName,
+            userId: userId,
+          },
+        }
+      );
+      console.log("This is response from vapis tart", resp);
     }
     // else {
     //   let formattedQuestions = "";
