@@ -31,42 +31,67 @@ router.post("/generate", async (req, res) => {
       userId,
     });
 
-    const { text: questions } = await generateText({
+    const { text: questionsJson } = await generateText({
       model,
       prompt: `Prepare questions for a job interview. 
         The job role is ${role}.
         The job experience level is ${level}.
-        The technology stack used in the job is : ${techstack}.
+        The technology stack used in the job is: ${techstack}.
         The focus between behavioural and technical questions should lean towards: ${type}.
-        The amount of questions to generate is:  ${amount}.
+        The amount of questions to generate is: ${amount}.
         Please return only the questions without any additional text.
-        The questions are going to be read by a voice assistant, so they should not use "/" or "*" or any other special characters.
-        Return the questions formatted like this : ["Question 1", "Question 2", "Question 3" ]`,
+        The questions are going to be read by a voice assistant, so they should not use "/" or "*" or any other special characters.`,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+      },
     });
-    console.log("Generated questions:", questions);
-    const cleanJson = questions
-      .replace(/```json\s*/i, "")
-      .replace(/```$/, "")
-      .trim();
-    console.log("Generated  clean json:", cleanJson);
+
+    console.log("Raw generateText output (JSON string):", questionsJson);
+
+    // Parse the JSON string
+    let questions;
+    try {
+      questions = JSON.parse(questionsJson);
+      console.log("Parsed questions:", questions);
+      console.log("Is questions an array?", Array.isArray(questions));
+      console.log(
+        "Are all elements strings?",
+        questions.every((q) => typeof q === "string")
+      );
+      if (!Array.isArray(questions)) {
+        throw new Error("Parsed questions is not an array");
+      }
+      if (!questions.every((q) => typeof q === "string")) {
+        throw new Error("Not all questions are strings");
+      }
+    } catch (parseError) {
+      console.error("Raw questions JSON:", questionsJson);
+      throw new Error(`Failed to parse questions JSON: ${parseError.message}`);
+    }
+
     const interviewData = {
       role,
       type,
       level,
-      techStack: techstack.split(",").map((tech) => tech.trim()), // fixed spelling
-      questions: JSON.parse(cleanJson),
+      techStack: techstack.split(",").map((tech) => tech.trim()), // Convert to array
+      questions, // Array of strings
       userId,
       amount,
       finalized: true,
     };
 
     const newInterview = new Interview(interviewData);
-    await newInterview.save();
-
-    console.log("Interview saved successfully");
+    const savedInterview = await newInterview.save();
+    console.log("Interview saved successfully:", savedInterview);
   } catch (error) {
-    console.error("Error in /generate:", error);
-    // Do not respond again — already handled above
+    console.error("Error in /generate:", error.message, error.stack);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
 });
 
