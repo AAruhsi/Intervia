@@ -27,11 +27,8 @@ router.post("/generate", async (req, res) => {
       amount,
       userId,
     });
-    const techStackArray = techstack
-      ?.split(",")
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0);
-
+    const techStackArray = techstack.split(",");
+    console.log("Parsed tech stack array:", techStackArray);
     const { text: questionsJson } = await generateText({
       model,
       prompt: `Prepare questions for a job interview. 
@@ -51,18 +48,11 @@ router.post("/generate", async (req, res) => {
       },
     });
 
-    console.log("Raw generateText output (JSON string):", questionsJson);
-
     // Parse the output
     let questions;
     try {
       questions = JSON.parse(questionsJson);
-      console.log("Parsed JSON questions:", questions);
     } catch (jsonError) {
-      console.warn(
-        "JSON parsing failed, attempting to parse as plain text:",
-        jsonError.message
-      );
       // Fallback: Split plain text by newlines and clean up
       questions = questionsJson
         .split("\n")
@@ -70,17 +60,12 @@ router.post("/generate", async (req, res) => {
         .filter((q) => q.length > 0); // Remove empty lines
     }
 
-    // Validate questions
-    console.log("Processed questions:", questions);
-    console.log("Is questions an array?", Array.isArray(questions));
-
     if (!questions.every((q) => typeof q === "string")) {
       throw new Error("Not all questions are strings");
     }
 
     // Remove duplicates
     questions = [...new Set(questions)]; // Ensure unique questions
-    console.log("Unique questions:", questions);
 
     // Ensure the correct number of questions
     if (questions.length !== amount) {
