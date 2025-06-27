@@ -18,9 +18,6 @@ router.get("/", (req, res) => {
 router.post("/generate", async (req, res) => {
   const { type, role, level, techstack, amount, userId } = req.body;
 
-  // Respond early to avoid Vapi timeout
-  res.status(200).json({ success: true });
-
   try {
     console.log("Received request to generate interview questions:", {
       type,
@@ -52,25 +49,38 @@ router.post("/generate", async (req, res) => {
 
     console.log("Raw generateText output (JSON string):", questionsJson);
 
-    // Parse the JSON string
+    // Parse the output
     let questions;
     try {
       questions = JSON.parse(questionsJson);
-      console.log("Parsed questions:", questions);
-      console.log("Is questions an array?", Array.isArray(questions));
-      console.log(
-        "Are all elements strings?",
-        questions.every((q) => typeof q === "string")
+      console.log("Parsed JSON questions:", questions);
+    } catch (jsonError) {
+      console.warn(
+        "JSON parsing failed, attempting to parse as plain text:",
+        jsonError.message
       );
-      if (!Array.isArray(questions)) {
-        throw new Error("Parsed questions is not an array");
-      }
-      if (!questions.every((q) => typeof q === "string")) {
-        throw new Error("Not all questions are strings");
-      }
-    } catch (parseError) {
-      console.error("Raw questions JSON:", questionsJson);
-      throw new Error(`Failed to parse questions JSON: ${parseError.message}`);
+      // Fallback: Split plain text by newlines and clean up
+      questions = questionsJson
+        .split("\n")
+        .map((q) => q.trim())
+        .filter((q) => q.length > 0); // Remove empty lines
+    }
+
+    // Validate questions
+    console.log("Processed questions:", questions);
+    console.log("Is questions an array?", Array.isArray(questions));
+
+    if (!questions.every((q) => typeof q === "string")) {
+      throw new Error("Not all questions are strings");
+    }
+
+    // Remove duplicates
+    questions = [...new Set(questions)]; // Ensure unique questions
+    console.log("Unique questions:", questions);
+
+    // Ensure the correct number of questions
+    if (questions.length !== amount) {
+      console.warn(`Expected ${amount} questions, but got ${questions.length}`);
     }
 
     const interviewData = {
@@ -87,6 +97,8 @@ router.post("/generate", async (req, res) => {
     const newInterview = new Interview(interviewData);
     const savedInterview = await newInterview.save();
     console.log("Interview saved successfully:", savedInterview);
+    // Respond early to avoid Vapi timeout
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error("Error in /generate:", error.message, error.stack);
     if (!res.headersSent) {
