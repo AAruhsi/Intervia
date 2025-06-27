@@ -27,6 +27,10 @@ router.post("/generate", async (req, res) => {
       amount,
       userId,
     });
+    const techStackArray = techstack
+      ?.split(",")
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
 
     const { text: questionsJson } = await generateText({
       model,
@@ -87,7 +91,7 @@ router.post("/generate", async (req, res) => {
       role,
       type,
       level,
-      techStack: techstack.split(",").map((tech) => tech.trim()), // Convert to array
+      techStack: techStackArray, // Convert to array
       questions, // Array of strings
       userId,
       amount,
