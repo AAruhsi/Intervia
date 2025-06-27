@@ -48,7 +48,7 @@ router.post("/generate", async (req, res) => {
       role,
       type,
       level,
-      techstack,
+      techStack: techstack,
       questions: JSON.parse(questions),
       userId,
       amount,
