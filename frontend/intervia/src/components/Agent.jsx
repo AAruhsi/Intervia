@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import vapi from "../vapi";
 import { useNavigate } from "react-router-dom";
+import { interviewer } from "../constants";
 
 const CallStatus = {
   INACTIVE: "INACTIVE",
@@ -9,43 +10,43 @@ const CallStatus = {
   CONNECTING: "CONNECTING",
 };
 
-const Agent = ({ userId, userName, type }) => {
-  const [isSpeaking, setisSpeaking] = useState(false);
-  const [callStatus, setcallStatus] = useState(CallStatus.INACTIVE);
+const Agent = ({ userId, userName, type, questions, interviewId }) => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [callStatus, setCallStatus] = useState(CallStatus.INACTIVE);
   const [messages, setMessages] = useState([]);
   const latestMessage = messages[messages.length - 1]?.content || "";
   const navigate = useNavigate();
-  const apiKey = import.meta.env.VITE_APP_VAPI_PUBLIC_API_KEY;
   const vapiWorkflowKey = import.meta.env.VITE_APP_VAPI_WORKFLOW_ID;
 
-  // console.log("Vapi instance created:", vapi, vapiWorkflowKey);
   useEffect(() => {
     const onCallStart = () => {
-      setcallStatus(CallStatus.ACTIVE);
+      setCallStatus(CallStatus.ACTIVE);
     };
     const onCallEnd = () => {
-      setcallStatus(CallStatus.ENDED);
+      setCallStatus(CallStatus.ENDED);
     };
-    const onMessage = (messages) => {
-      if (
-        messages.type === "transcript" &&
-        messages.transcriptType === "final"
-      ) {
+    const onMessage = (message) => {
+      if (message.type === "transcript" && message.transcriptType === "final") {
         const newMessage = {
-          role: messages.role,
-          content: messages.transcript,
+          role: message.role,
+          content: message.transcript,
         };
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     };
     const onSpeechStart = () => {
-      setisSpeaking(true);
+      setIsSpeaking(true);
     };
     const onSpeechEnd = () => {
-      setisSpeaking(false);
+      setIsSpeaking(false);
     };
     const onError = (error) => {
-      console.error("Error:", error);
+      console.error("Vapi Error:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "system", content: "An error occurred during the call." },
+      ]);
+      setCallStatus(CallStatus.ENDED);
     };
 
     vapi.on("call-start", onCallStart);
@@ -65,52 +66,104 @@ const Agent = ({ userId, userName, type }) => {
     };
   }, []);
 
+  const handleGenerateFeedback = async (messages) => {
+    console.log("Generating feedback for interview:", interviewId);
+    // Implement your feedback logic here, e.g., send messages to your backend
+    const { success, id } = { success: true, id: interviewId }; // Mock response, replace with actual API call
+    if (success && id) {
+      console.log("Feedback generated successfully:", messages);
+      navigate(`/interview/feedback`);
+    } else {
+      console.error("Error generating feedback");
+      navigate("/");
+    }
+  };
+
   useEffect(() => {
-    if (callStatus === CallStatus.ENDED) navigate("/");
-  }, [callStatus, navigate]);
+    if (callStatus === CallStatus.ENDED) {
+      if (type === "generate") negotiate("/");
+      else {
+        handleGenerateFeedback(messages);
+      }
+    }
+  }, [callStatus, navigate, type, messages, interviewId]);
 
   const handleCall = async () => {
     if (
       callStatus === CallStatus.ACTIVE ||
       callStatus === CallStatus.CONNECTING
-    )
+    ) {
       return;
+    }
 
-    setcallStatus(CallStatus.CONNECTING);
-
-    if (type === "generate") {
-      const resp = await vapi.start(
-        undefined,
-        undefined,
-        undefined,
-        vapiWorkflowKey,
-        {
+    setCallStatus(CallStatus.CONNECTING);
+    console.log(questions);
+    try {
+      if (type === "generate") {
+        await vapi.start(undefined, undefined, undefined, vapiWorkflowKey, {
           variableValues: {
             username: userName,
             userId: userId,
           },
+        });
+      } else {
+        // const formattedQuestions = questions
+        //   .map((question, index) => `${index + 1}. ${question}`)
+        //   .join("\n");
+        // console.log(formattedQuestions);
+        // await vapi.start(
+        //   {
+        //     ...interviewer,
+        //     model: {
+        //       ...interviewer.model,
+        //       messages: [
+        //         {
+        //           ...interviewer.model.messages[0],
+        //           content: interviewer.model.messages[0].content.replace(
+        //             "{{questions}}",
+        //             formattedQuestions
+        //           ),
+        //         },
+        //       ],
+        //     },
+        //   },
+        //   undefined,
+        //   undefined,
+        //   vapiWorkflowKey,
+        //   {
+        //     variableValues: {
+        //       questions: formattedQuestions,
+        //       username: userName,
+        //       userId: userId,
+        //       interviewId: interviewId,
+        //     },
+        //   }
+        // );
+        let formattedQuestions = "";
+        if (questions) {
+          formattedQuestions = questions
+            .map((question) => `- ${question}`)
+            .join("\n");
         }
-      );
-      console.log("This is response from vapis tart", resp);
-    }
-    // else {
-    //   let formattedQuestions = "";
-    //   if (questions) {
-    //     formattedQuestions = questions
-    //       .map((question) => `- ${question}`)
-    //       .join("\n");
-    //   }
 
-    //   await vapi.start(interviewer, {
-    //     variableValues: {
-    //       questions: formattedQuestions,
-    //     },
-    //   });
-    // }
+        await vapi.start(interviewer, {
+          variableValues: {
+            questions: formattedQuestions,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error starting call:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "system", content: "Failed to start the call." },
+      ]);
+      setCallStatus(CallStatus.ENDED);
+    }
   };
 
   const handleDisconnect = async () => {
-    setcallStatus(CallStatus.ENDED);
+    setCallStatus(CallStatus.ENDED);
     vapi.stop();
   };
 
@@ -130,7 +183,7 @@ const Agent = ({ userId, userName, type }) => {
           {isSpeaking && (
             <div className="absolute top-52 w-[10vw] h-[10vw] bg-yellow-500 rounded-full animate-ping z-0"></div>
           )}
-          <h1 className="text-white font-openSans text-2xl">Ai Agent</h1>
+          <h1 className="text-white font-openSans text-2xl">AI Agent</h1>
         </div>
 
         <div className="aiAgent w-full h-full flex flex-col justify-center items-center gap-4 border-5 border-gray-500 rounded-2xl">
@@ -145,7 +198,7 @@ const Agent = ({ userId, userName, type }) => {
 
       {/* transcript */}
       <div className="transcript w-[80vw] px-10 py-3 text-center flex justify-center items-center text-white shadow-[inset_-12px_-8px_40px_#46464620] rounded-3xl">
-        {messages.length > 0 && <p className="">{latestMessage}</p>}
+        {messages.length > 0 && <p>{latestMessage}</p>}
       </div>
 
       {/* call end/start button */}

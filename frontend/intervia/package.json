@@ -17,6 +17,7 @@
     "@fontsource/ubuntu": "^5.2.6",
     "@tailwindcss/vite": "^4.1.10",
     "@vapi-ai/web": "^2.3.6",
+    "axios": "^1.10.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",

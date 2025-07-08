@@ -5,6 +5,8 @@ import VisitorPage from "./pages/VisitorPage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import CallPage from "./pages/Callpage";
+import Card from "./components/Card";
+import Feedback from "./pages/Feedback";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -23,6 +25,8 @@ const App = () => {
               <Route path="register" element={<Register />} />
               <Route path="login" element={<Login />} />
               <Route path="callpage" element={<CallPage />} />
+              <Route path="card" element={<Card />} />
+              <Route path="/interview/feedback" element={<Feedback />} />
             </Route>
           </Routes>
         </BrowserRouter>
