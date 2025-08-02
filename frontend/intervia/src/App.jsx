@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import CallPage from "./pages/Callpage";
 import Card from "./components/Card";
 import Feedback from "./pages/Feedback";
+import InterviaAIPage from "./Temp";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -24,10 +25,11 @@ const App = () => {
               <Route index element={<HomePage />} />
               <Route path="register" element={<Register />} />
               <Route path="login" element={<Login />} />
-              <Route path="callpage" element={<CallPage />} />
+
               <Route path="card" element={<Card />} />
               <Route path="/interview/feedback" element={<Feedback />} />
             </Route>
+            <Route path="callpage" element={<CallPage />} />
           </Routes>
         </BrowserRouter>
       </ClerkProvider>

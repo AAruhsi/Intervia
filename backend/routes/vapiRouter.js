@@ -1,10 +1,12 @@
 import { google } from "@ai-sdk/google";
 import express from "express";
-import { generateText } from "ai"; // or "@ai-sdk/core" depending on your setup
+import { generateObject, generateText } from "ai"; // or "@ai-sdk/core" depending on your setup
 import Interview from "../models/Interviews.js"; // Adjust the path as necessary
+import { feedbackSchema } from "../../frontend/intervia/src/constants.js";
+import Feedback from "../models/Feedback.js";
 const router = express.Router();
 
-const model = google("gemini-1.5-flash", {
+const model = google("gemini-1.5-pro-latest", {
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY, // Ensure you have set this in your environment variables
 });
 
@@ -13,6 +15,57 @@ router.get("/", (req, res) => {
     message: "Welcome to the VAPI endpoint",
     status: "success",
   });
+});
+
+router.post("/generateFeedback", async (req, res) => {
+  const { interviewId, userId, transcript } = req.body;
+  try {
+    const formattedTranscript = transcript
+      .map((sentence) => `-${sentence.role}: ${sentence.content}\n`)
+      .join("");
+    const {
+      totalScore,
+      categoryScores,
+      strengths,
+      areasForImprovement,
+      finalAssessment,
+    } = await generateObject({
+      model,
+      schema: feedbackSchema,
+      prompt: `You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on the provided transcript in a thorough, detailed, and objective manner. Be critical and unbiased; if the candidate makes mistakes, clearly identify and explain them in your feedback. Use the transcript: ${formattedTranscript}.
+              Score the candidate from 0 to 100 in the following categories only, providing a brief justification for each score:
+              Communication Skills: Clarity of expression, articulation, and logical structure of responses.
+              Technical Knowledge: Depth of understanding of key concepts relevant to the role.
+              Problem Solving: Ability to analyze problems and propose effective solutions.
+              Cultural and Role Fit: Alignment with company values and suitability for the job role.
+                Confidence and Engagement: Confidence in delivery, engagement with questions, and overall presence.`,
+      system:
+        "You are a professional interviewer analyzing a mock interview.Your task is to evaluate the candidate based on structured categories ",
+    });
+    console.log(
+      "Generated feedback:",
+      totalScore,
+      categoryScores,
+      strengths,
+      areasForImprovement,
+      finalAssessment
+    );
+    const feedback = new Feedback({
+      interviewId,
+      userId,
+      totalScore,
+      categoryScores,
+      strengths,
+      areasForImprovement,
+      finalAssessment,
+    });
+
+    await feedback.save(); // Don't forget this line to persist it
+
+    res.status(200).json({ messages: "Feedback saved to Db", data: feedback });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 router.post("/generate", async (req, res) => {
@@ -27,7 +80,8 @@ router.post("/generate", async (req, res) => {
       amount,
       userId,
     });
-    const techStackArray = techstack.split(",");
+    const techStackArray = techstack.split(",").map((item) => item.trim());
+
     console.log("Parsed tech stack array:", techStackArray);
     const { text: questionsJson } = await generateText({
       model,

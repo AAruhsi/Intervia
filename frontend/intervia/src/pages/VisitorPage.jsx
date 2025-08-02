@@ -6,7 +6,11 @@ import Footer from "../components/Footer";
 function VisitorPage() {
   return (
     <>
-      <div className="bg-black min-h-screen ">
+      <div
+        // className=" min-h-screen "
+        className="relative text-center py-5 bg-cover bg-center bg-no-repeat bg-gray-900 text-white"
+        style={{ backgroundImage: "url('/background.png')" }}
+      >
         <Navbar />
 
         <Outlet />

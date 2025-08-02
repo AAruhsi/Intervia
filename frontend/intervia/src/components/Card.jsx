@@ -17,14 +17,14 @@ const Card = ({
   });
   const navigate = useNavigate();
   return (
-    <div className="relative w-full sm:w-[90%] md:w-[90%] lg:w-full h-auto min-h-[320px] max-h-[500px] rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 border border-gray-600 shadow-lg overflow-hidden">
+    <div className="relative w-full sm:w-[90%] md:w-[90%] lg:w-full text-left h-auto min-h-[320px] max-h-[500px] rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 border border-gray-600 shadow-lg overflow-hidden">
       {/* Tag in Top Right Corner */}
-      <span className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-semibold px-3 py-2 rounded-tr-xl rounded-bl-2xl shadow-xl z-10">
+      <span className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-semibold px-3 py-2 rounded-tr-xl rounded-bl-2xl shadow-xl z-10 uppercase">
         {type}
       </span>
 
       {/* Inner Content */}
-      <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black rounded-2xl m-1 p-4 text-white flex flex-col justify-between">
+      <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black rounded-2xl m-1 p-6 text-white flex flex-col justify-between">
         <div>
           <img
             src="https://img.freepik.com/free-psd/3d-illustration-person-with-sunglasses_23-2149436188.jpg"
