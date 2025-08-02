@@ -1,4 +1,3 @@
-import Vapi from "@vapi-ai/web"; // ✅ This is correct if the library exports `api` by default
 import { z } from "zod";
 
 export const mappings = {

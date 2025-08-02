@@ -6,7 +6,7 @@ import { feedbackSchema } from "../../frontend/intervia/src/constants.js";
 import Feedback from "../models/Feedback.js";
 const router = express.Router();
 
-const model = google("gemini-1.5-pro-latest", {
+const model = google("gemini-2.5-flash", {
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY, // Ensure you have set this in your environment variables
 });
 
